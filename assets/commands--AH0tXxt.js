@@ -1,0 +1,1 @@
+import"./modulepreload-polyfill-B5Qt9EMX.js";function c(a){Office.addin.showAsTaskpane().then(()=>{a&&a.completed&&a.completed()}).catch(()=>{a&&a.completed&&a.completed()})}Office.onReady(()=>{Office.actions&&Office.actions.associate?Office.actions.associate("showTaskpane",c):window.showTaskpane=c});
