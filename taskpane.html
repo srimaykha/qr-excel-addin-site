@@ -1,134 +1,25 @@
 <!doctype html>
-<html>
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>QR Codes for Excel</title>
-  <style>
-    :root{--gap:10px;--pad:12px;--radius:12px;--label:#1f2937;--muted:#6b7280}
-    body{font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;color:#111827;background:#fff}
-    .wrap{padding:var(--pad);max-width:760px}
-    .card{border:1px solid #e5e7eb;border-radius:var(--radius);padding:var(--pad)}
-    h1{font-size:18px;margin:0 0 10px 0}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
-    .row{display:flex;flex-direction:column;gap:6px}
-    label{color:var(--label);font-weight:600}
-    input,select{height:32px;border:1px solid #d1d5db;border-radius:8px;padding:0 8px;outline:none}
-    input[type="color"]{padding:0 2px}
-    .hint{color:var(--muted);font-size:12px}
-    .bar{display:flex;gap:var(--gap);align-items:center;flex-wrap:wrap;margin-top:var(--gap)}
-    button{height:34px;border:1px solid #111827;background:#111827;color:#fff;border-radius:8px;padding:0 12px;cursor:pointer}
-    button.secondary{background:#fff;color:#111827}
-    .status{margin-top:10px;font-size:12px}
-    .ok{color:#059669}.err{color:#b91c1c}
-    @media (max-width:520px){.grid{grid-template-columns:1fr}}
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="card">
-      <h1>QR Codes for Excel</h1>
-
-      <div class="grid">
-        <div class="row">
-          <label for="ws">Worksheet</label>
-          <select id="ws">
-            <option value="active">Active sheet</option>
-            <option value="byname">Select by name…</option>
-          </select>
-        </div>
-        <div class="row" id="wsNameRow" style="display:none">
-          <label for="wsName">Sheet name</label>
-          <input id="wsName" placeholder="e.g., Sheet1"/>
-        </div>
-
-        <div class="row"><label for="srcCol">Source Column</label><input id="srcCol" value="A"/></div>
-        <div class="row"><label for="dstCol">Target Column</label><input id="dstCol" value="B"/></div>
-
-        <div class="row"><label for="startRow">Start Row</label><input id="startRow" type="number" value="1" min="1"/></div>
-        <div class="row"><label for="endRow">End Row (blank = last)</label><input id="endRow" type="number" min="1" placeholder=""/></div>
-
-        <div class="row"><label for="sizePx">QR Size (px)</label><input id="sizePx" type="number" min="16" max="512" value="128"/></div>
-        <div class="row"><label for="marginPx">Quiet Zone (px)</label><input id="marginPx" type="number" min="0" max="20" value="2"/></div>
-
-        <div class="row">
-          <label for="ecLevel">Error Correction</label>
-          <select id="ecLevel"><option value="M">M (15%)</option><option value="L">L (7%)</option><option value="Q">Q (25%)</option><option value="H">H (30%)</option></select>
-        </div>
-        <div class="row">
-          <label>Colors</label>
-          <div class="bar" style="padding:2px 0">
-            <span class="hint">FG</span><input id="fg" type="color" value="#111827">
-            <span class="hint">BG</span><input id="bg" type="color" value="#ffffff">
-          </div>
-        </div>
-
-        <div class="row"><label for="prefix">Prefix</label><input id="prefix" placeholder="e.g., https://example.com/?id="/></div>
-        <div class="row"><label for="suffix">Suffix</label><input id="suffix" placeholder="e.g., &src=excel"/></div>
-
-        <div class="row">
-          <label for="placement">Placement</label>
-          <select id="placement">
-            <option value="fit-cell">Fit cell (resize image)</option>
-            <option value="fixed">Fixed px size</option>
-            <option value="next-col">Insert in next empty column</option>
-          </select>
-        </div>
-        <div class="row">
-          <label for="format">Image Format</label>
-          <select id="format"><option value="png">PNG</option><option value="svg">SVG</option></select>
-        </div>
-      </div>
-
-      <div class="bar" style="margin-top:6px">
-        <label class="hint"><input id="hasHeader" type="checkbox"> First row is header</label>
-        <label class="hint"><input id="overwrite" type="checkbox" checked> Overwrite existing images</label>
-      </div>
-
-      <div class="bar">
-        <button id="btnRun">Generate</button>
-        <button id="btnPreview" class="secondary">Preview 1 cell</button>
-        <button id="btnClear" class="secondary">Clear target</button>
-      </div>
-
-      <div class="status">
-        <span class="ok" id="statusOk" style="display:none">Ready</span>
-        <span class="err" id="statusErr" style="display:none"></span>
-        <div class="hint">Tip: Keep all options in view—no scrolling required.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Load the bundled taskpane logic that Excel needs -->
-  <script type="module" src="./assets/taskpane-CGf6F3vj.js"></script>
-
-  <!-- Lightweight helper so existing JS can read the form -->
-  <script>
-    (function(){
-      const qs = id => document.getElementById(id);
-      const ws = qs('ws'), wsNameRow = qs('wsNameRow');
-      ws.addEventListener('change', () => { wsNameRow.style.display = (ws.value==='byname')? '' : 'none'; });
-      window.qrForm = () => ({
-        worksheetMode: ws.value,
-        worksheetName: (qs('wsName')?.value||'').trim(),
-        srcCol: qs('srcCol').value.trim(),
-        dstCol: qs('dstCol').value.trim(),
-        startRow: Number(qs('startRow').value||1),
-        endRow: qs('endRow').value ? Number(qs('endRow').value) : null,
-        sizePx: Number(qs('sizePx').value||128),
-        marginPx: Number(qs('marginPx').value||2),
-        ecLevel: qs('ecLevel').value,
-        fg: qs('fg').value, bg: qs('bg').value,
-        prefix: qs('prefix').value, suffix: qs('suffix').value,
-        placement: qs('placement').value,
-        format: qs('format').value,
-        hasHeader: qs('hasHeader').checked,
-        overwrite: qs('overwrite').checked
-      });
-      ['btnRun','btnPreview','btnClear'].forEach(id=>{
-        const el = qs(id); el && el.addEventListener('click', ()=>window.dispatchEvent(new CustomEvent(id,{detail:window.qrForm()})));
-      });
-    })();
-  </script>
-</body>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>QR Codes for Excel</title>
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; }
+      .wrap { padding: 12px; }
+      .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+      .row { margin-bottom: 12px; }
+      button { padding: 8px 12px; border-radius: 8px; border: 1px solid #e5e7eb; cursor: pointer; }
+      input, select { padding: 6px 8px; border-radius: 8px; border: 1px solid #e5e7eb; }
+      .muted { color: #6b7280; font-size: 12px; }
+      .ok { color: #16a34a; }
+      .err { color: #dc2626; }
+    </style>
+    <script type="module" crossorigin src="./assets/taskpane-CGf6F3vj.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/modulepreload-polyfill-B5Qt9EMX.js">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
 </html>
