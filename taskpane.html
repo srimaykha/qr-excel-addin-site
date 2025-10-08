@@ -1,4 +1,3 @@
-cat >> ~/qr-excel-addin/addin-ui/dist/taskpane.html <<'PATCH'
 <script>
   // --- tiny helpers used by the handlers
   const $ = id => document.getElementById(id);
@@ -99,4 +98,3 @@ cat >> ~/qr-excel-addin/addin-ui/dist/taskpane.html <<'PATCH'
   });
   if(window.Office && Office.onReady){ Office.onReady(()=>ok("Ready")); }
 </script>
-PATCH
